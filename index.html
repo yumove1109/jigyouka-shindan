@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事業家タイプ診断</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #FF6B9D;
+      --coral: #FF8C69;
+      --purple: #C471ED;
+      --lavender: #B8A9FF;
+      --peach: #FFD6E0;
+      --cream: #FFF8F0;
+      --text-dark: #3D2C4E;
+      --text-mid: #7A6A8A;
+      --text-light: #B8A9C9;
+      --card-bg: #FFFFFF;
+      --shadow: 0 8px 32px rgba(196,113,237,0.12);
+      --shadow-hover: 0 16px 48px rgba(196,113,237,0.22);
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #FFE8F4 0%, #F0E8FF 40%, #FFE8D6 100%);
+      min-height: 100vh;
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+
+    /* Decorative blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, var(--purple), transparent);
+      top: -100px; right: -100px;
+    }
+    body::after {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, var(--pink), transparent);
+      bottom: -80px; left: -80px;
+    }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      text-align: center;
+      padding: 24px 0 8px;
+    }
+    .app-header .logo-emoji {
+      font-size: 44px;
+      display: block;
+      margin-bottom: 8px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .app-header h1 {
+      font-size: 22px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.3;
+    }
+    .app-header .subtitle {
+      font-size: 13px;
+      color: var(--text-mid);
+      margin-top: 6px;
+    }
+
+    /* ===== SCREENS ===== */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: fadeSlideIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .screen.active { display: flex; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===== START SCREEN ===== */
+    .start-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow: var(--shadow);
+      margin-top: 20px;
+      text-align: center;
+    }
+    .start-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 14px;
+    }
+    .start-card p {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.8;
+      margin-bottom: 8px;
+    }
+    .type-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 24px 0;
+    }
+    .type-chip {
+      background: linear-gradient(135deg, var(--peach), #EDD8FF);
+      border-radius: 14px;
+      padding: 12px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dark);
+      text-align: left;
+    }
+    .type-chip .type-label {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: white;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .type-chip .type-name {
+      display: block;
+      font-size: 11px;
+      color: var(--text-mid);
+      margin-top: 2px;
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 20px rgba(196,113,237,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:active::after { opacity: 0.1; }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(196,113,237,0.45);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid var(--lavender);
+      border-radius: 16px;
+      background: white;
+      color: var(--purple);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-top: 12px;
+    }
+    .btn-secondary:hover {
+      background: var(--peach);
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+
+    /* ===== QUIZ SCREEN ===== */
+    .progress-area {
+      margin: 20px 0 16px;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .progress-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-mid);
+    }
+    .progress-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--purple);
+    }
+    .progress-bar-track {
+      height: 8px;
+      background: rgba(196,113,237,0.12);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink), var(--purple));
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .question-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 28px 20px;
+      box-shadow: var(--shadow);
+    }
+    .question-number {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--peach), #EDD8FF);
+      border-radius: 99px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 14px;
+    }
+    .question-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .choice-btn {
+      width: 100%;
+      text-align: left;
+      padding: 16px 18px;
+      border: 2px solid rgba(196,113,237,0.15);
+      border-radius: 16px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .choice-btn:hover {
+      border-color: var(--lavender);
+      background: linear-gradient(135deg, #FFF0F8, #F5EFFF);
+      transform: translateX(4px);
+      box-shadow: 0 4px 16px rgba(196,113,237,0.15);
+    }
+    .choice-btn.selected {
+      border-color: var(--purple);
+      background: linear-gradient(135deg, #FDE8FF, #E8E0FF);
+      box-shadow: 0 4px 16px rgba(196,113,237,0.2);
+    }
+    .choice-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--peach), #EDD8FF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .choice-btn.selected .choice-icon {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+    }
+    .choice-content {
+      flex: 1;
+    }
+    .choice-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.5;
+    }
+
+    .quiz-nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn-back {
+      padding: 14px 20px;
+      border: 2px solid rgba(196,113,237,0.2);
+      border-radius: 14px;
+      background: white;
+      color: var(--text-mid);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-back:hover {
+      border-color: var(--lavender);
+      color: var(--purple);
+    }
+    .btn-next {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 4px 16px rgba(196,113,237,0.3);
+      opacity: 0.4;
+      pointer-events: none;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .btn-next.enabled {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .btn-next.enabled:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(196,113,237,0.4);
+    }
+
+    /* ===== LOADING ===== */
+    .loading-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0;
+      text-align: center;
+    }
+    .loading-emoji {
+      font-size: 56px;
+      animation: spin-bounce 1.2s ease-in-out infinite;
+      display: block;
+      margin-bottom: 24px;
+    }
+    @keyframes spin-bounce {
+      0%, 100% { transform: rotate(-10deg) scale(1); }
+      50% { transform: rotate(10deg) scale(1.1); }
+    }
+    .loading-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 8px;
+    }
+    .loading-sub {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    .loading-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .loading-dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      animation: dot-bounce 1.2s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dot-bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* ===== RESULT SCREEN ===== */
+    .result-header {
+      text-align: center;
+      padding: 20px 0 0;
+    }
+    .result-header .crown {
+      font-size: 48px;
+      display: block;
+      animation: float 3s ease-in-out infinite;
+      margin-bottom: 8px;
+    }
+    .result-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-mid);
+      margin-bottom: 4px;
+    }
+    .result-type-badge {
+      display: inline-block;
+      font-size: 72px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin: 4px 0 2px;
+    }
+    .result-type-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .result-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+      margin-top: 16px;
+    }
+    .result-card .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 12px;
+    }
+    .result-card .section-title::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 18px;
+      border-radius: 2px;
+      background: linear-gradient(to bottom, var(--pink), var(--purple));
+    }
+    .result-desc {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.9;
+    }
+
+    .first-step-card {
+      background: linear-gradient(135deg, #FFF0FA, #F0EAFF);
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 14px;
+      border: 1.5px solid rgba(196,113,237,0.15);
+    }
+    .first-step-card .step-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--pink);
+      margin-bottom: 10px;
+    }
+    .first-step-card .step-icon {
+      font-size: 20px;
+    }
+    .first-step-card .step-body {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.85;
+    }
+
+    .scores-section {
+      margin-top: 14px;
+    }
+    .score-bar-item {
+      margin-bottom: 10px;
+    }
+    .score-bar-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .score-bar-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-mid);
+    }
+    .score-bar-pct {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--purple);
+    }
+    .score-bar-track {
+      height: 8px;
+      background: rgba(196,113,237,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .result-actions {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ===== CONFETTI ===== */
+    .confetti-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      top: -20px;
+      width: 10px;
+      height: 10px;
+      opacity: 0;
+      animation: confetti-fall linear forwards;
+    }
+    @keyframes confetti-fall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(110vh) rotate(720deg); }
+    }
+
+    /* ===== SHARE BUTTON ===== */
+    .btn-share {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #43E97B, #38F9D7);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 4px 16px rgba(67,233,123,0.3);
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .btn-share:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(67,233,123,0.4);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align: center;
+      padding: 24px 0 8px;
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (min-width: 600px) {
+      .app-header h1 { font-size: 26px; }
+      .question-text { font-size: 20px; }
+      .choice-label { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="confetti-container" class="confetti-container"></div>
+
+<div id="app">
+  <header class="app-header">
+    <span class="logo-emoji">✨</span>
+    <h1>事業家タイプ診断</h1>
+    <p class="subtitle">あなたに合った事業スタイルを見つけよう</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="screen-start" class="screen active">
+    <div class="start-card">
+      <h2>あなたはどのタイプ？🌸</h2>
+      <p>6つの質問に答えるだけで、あなたに合った事業スタイルが診断されます。</p>
+      <div class="type-preview">
+        <div class="type-chip">
+          <span class="type-label">TYPE A</span>
+          <strong>出資者</strong>
+          <span class="type-name">資本で事業を動かす</span>
+        </div>
+        <div class="type-chip">
+          <span class="type-label">TYPE B</span>
+          <strong>経営者</strong>
+          <span class="type-name">ビジョンで組織を率いる</span>
+        </div>
+        <div class="type-chip">
+          <span class="type-label">TYPE C</span>
+          <strong>個人事業主</strong>
+          <span class="type-name">才能で価値を生む</span>
+        </div>
+        <div class="type-chip">
+          <span class="type-label">TYPE D</span>
+          <strong>投資家</strong>
+          <span class="type-name">資産運用で増やす</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()">診断スタート 🚀</button>
+    </div>
+    <div class="footer">所要時間：約2分</div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz" class="screen">
+    <div class="progress-area">
+      <div class="progress-info">
+        <span class="progress-label">質問に答えてね</span>
+        <span class="progress-count" id="progress-count">1 / 6</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-bar" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-number" id="q-number">💭 Question 1</div>
+      <p class="question-text" id="q-text"></p>
+      <div class="choices" id="q-choices"></div>
+    </div>
+
+    <div class="quiz-nav">
+      <button class="btn-back" id="btn-back" onclick="prevQuestion()">← 戻る</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">次へ →</button>
+    </div>
+  </div>
+
+  <!-- LOADING SCREEN -->
+  <div id="screen-loading" class="screen">
+    <div class="loading-screen">
+      <span class="loading-emoji">🔮</span>
+      <div class="loading-text">あなたのタイプを分析中...</div>
+      <div class="loading-sub">少しお待ちください</div>
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="screen-result" class="screen">
+    <div class="result-header">
+      <span class="crown" id="result-crown">👑</span>
+      <h2>あなたの事業家タイプは...</h2>
+      <div class="result-type-badge" id="result-type-letter">A</div>
+      <div class="result-type-name" id="result-type-name">出資者タイプ</div>
+    </div>
+
+    <div class="result-card">
+      <div class="section-title">タイプの特徴</div>
+      <p class="result-desc" id="result-desc"></p>
+    </div>
+
+    <div class="first-step-card">
+      <div class="step-title">
+        <span class="step-icon">🌱</span>
+        おすすめの最初の一歩
+      </div>
+      <div class="step-body" id="result-step"></div>
+    </div>
+
+    <div class="result-card scores-section">
+      <div class="section-title">タイプ別スコア</div>
+      <div id="score-bars"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-share" onclick="shareResult()">📣 結果をシェアする</button>
+      <button class="btn-primary" onclick="retryQuiz()">🔄 もう一度診断する</button>
+    </div>
+
+    <div class="footer">※ この診断はあなたの傾向を楽しく知るためのものです</div>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      text: "日頃、どんなことに一番時間を使いますか？",
+      emoji: "⏰",
+      choices: [
+        { label: "良い事業や経営者を探して出資先を検討すること", scores: { A: 3, B: 0, C: 0, D: 1 } },
+        { label: "チームをまとめてビジョンを伝えること", scores: { A: 0, B: 3, C: 0, D: 0 } },
+        { label: "自分のスキルを磨いて成果物を作ること", scores: { A: 0, B: 0, C: 3, D: 0 } },
+        { label: "株・不動産など資産運用の情報収集", scores: { A: 1, B: 0, C: 0, D: 3 } }
+      ]
+    },
+    {
+      text: "1000万円が自由に使えるとしたら？",
+      emoji: "💰",
+      choices: [
+        { label: "面白い事業を運営している人・会社に出資する", scores: { A: 3, B: 0, C: 0, D: 0 } },
+        { label: "自分の会社設立・採用・ブランディングに使う", scores: { A: 0, B: 3, C: 0, D: 0 } },
+        { label: "自分のサービスや作品のクオリティ向上に使う", scores: { A: 0, B: 0, C: 3, D: 0 } },
+        { label: "株や不動産をじっくり選んで投資する", scores: { A: 0, B: 0, C: 0, D: 3 } }
+      ]
+    },
+    {
+      text: "あなたが最も得意だと感じることは？",
+      emoji: "⚡",
+      choices: [
+        { label: "将来性のある人・事業を見抜く審美眼", scores: { A: 3, B: 1, C: 0, D: 1 } },
+        { label: "人を動かし、組織をまとめるリーダーシップ", scores: { A: 0, B: 3, C: 0, D: 0 } },
+        { label: "一人で圧倒的なアウトプットを出すこと", scores: { A: 0, B: 0, C: 3, D: 0 } },
+        { label: "データや数字を分析して冷静に判断すること", scores: { A: 1, B: 0, C: 0, D: 3 } }
+      ]
+    },
+    {
+      text: "失敗したとき、あなたはどう動きますか？",
+      emoji: "💪",
+      choices: [
+        { label: "次の出資・選球眼を磨くための学びにする", scores: { A: 3, B: 0, C: 0, D: 1 } },
+        { label: "チームと一緒に原因を分析して組織を立て直す", scores: { A: 0, B: 3, C: 0, D: 0 } },
+        { label: "自分のスキルを見直して再挑戦する", scores: { A: 0, B: 0, C: 3, D: 0 } },
+        { label: "リスク計算を再評価して次の戦略を練る", scores: { A: 0, B: 0, C: 0, D: 3 } }
+      ]
+    },
+    {
+      text: "理想の働き方は？",
+      emoji: "🌟",
+      choices: [
+        { label: "優秀な経営者に任せて、成果を大局から見届ける", scores: { A: 3, B: 0, C: 0, D: 0 } },
+        { label: "仲間と一緒に大きなビジョンを実現していく", scores: { A: 0, B: 3, C: 0, D: 0 } },
+        { label: "自分のペースで高品質な仕事を突き詰める", scores: { A: 0, B: 0, C: 3, D: 0 } },
+        { label: "市場を冷静に分析しながら資産を静かに増やす", scores: { A: 0, B: 0, C: 0, D: 3 } }
+      ]
+    },
+    {
+      text: "人との関わり方で、自分に近いのは？",
+      emoji: "🤝",
+      choices: [
+        { label: "信頼できる少数の優秀な人を厳選して深く関わる", scores: { A: 3, B: 0, C: 1, D: 0 } },
+        { label: "多くの人を巻き込んでモチベートするのが好き", scores: { A: 0, B: 3, C: 0, D: 0 } },
+        { label: "少人数との深い関係を大切にしている", scores: { A: 1, B: 0, C: 3, D: 0 } },
+        { label: "一人での思考や作業が最も落ち着く", scores: { A: 0, B: 0, C: 1, D: 3 } }
+      ]
+    }
+  ];
+
+  const types = {
+    A: {
+      name: "出資者タイプ",
+      crown: "👑",
+      desc: "あなたは優れた審美眼で人や事業の可能性を見抜く力を持っています。自分で実務をこなすよりも、優秀な経営者に任せながら資本を通じて複数の事業に関わることで大きな価値を生み出すタイプ。ウォーレン・バフェットのように「良い馬（経営者）に乗る」ことが得意で、出資を通じて事業の規模を拡大させていきます。",
+      step: "まず身近な起業家・経営者とのネットワークを作りましょう。エンジェル投資家のコミュニティに参加したり、クラウドファンディング（Makuakeなど）での少額出資からスタートするのがおすすめです。「投資の勉強」より「人を見る目を養う」ことを意識してみてください。",
+      color: ["#FF6B9D", "#C471ED"],
+      barColor: "linear-gradient(90deg, #FF6B9D, #C471ED)"
+    },
+    B: {
+      name: "経営者タイプ",
+      crown: "🏆",
+      desc: "あなたはビジョンを描き、人を巻き込む力を持つ経営者タイプ。組織をまとめて仲間と共に大きな目標へ向かっていくことがエネルギーの源泉です。リーダーとして事業を牽引し、採用・組織づくりを通じて会社の規模を拡大することに本領を発揮します。一人では難しいことも、チームを組めば何でもできると感じているはずです。",
+      step: "まず少人数でも構いません、副業・起業の形でチームを作ってみましょう。起業スクールや経営者コミュニティに参加して同志を見つけること、法人設立して小さくてもビジョンを掲げることがファーストステップです。",
+      color: ["#FF8C69", "#FFC837"],
+      barColor: "linear-gradient(90deg, #FF8C69, #FFC837)"
+    },
+    C: {
+      name: "個人事業主タイプ",
+      crown: "🌸",
+      desc: "あなたは個人としての能力が非常に高く、その才能で独自の価値を生み出せるタイプ。組織のマネジメントや人間関係の調整より、自分の強みを100%活かして一人で圧倒的な成果を出すことに喜びを感じます。フリーランス・専門家・クリエイターとして突き抜けることが、あなたが最も輝ける道です。",
+      step: "今持っているスキルをサービスとしてパッケージ化してみましょう。ランサーズ・ココナラなどのプラットフォームで副業からスタート、またはSNSで発信して直接受注する形が最短ルートです。まず1件、有料で仕事を受けることを目標にしてみてください。",
+      color: ["#F093FB", "#F5576C"],
+      barColor: "linear-gradient(90deg, #F093FB, #F5576C)"
+    },
+    D: {
+      name: "投資家タイプ",
+      crown: "💎",
+      desc: "あなたは冷静なデータ分析と長期的視点で資産を増やすことが得意な投資家タイプ。事業運営や組織マネジメントは性に合わなくても、株式・不動産などの金融資産を通じて着実に資産を積み上げることに優れた適性があります。感情に流されず、数字と論理で淡々と意思決定できることが最大の強みです。",
+      step: "まず積立NISA・インデックス投資から投資習慣を作りましょう。月々少額からでも「お金を働かせる」感覚を身につけたら、個別株・不動産クラウドファンディングへとステップアップ。財務諸表の読み方を学ぶと投資の精度がグッと上がります。",
+      color: ["#4facfe", "#00f2fe"],
+      barColor: "linear-gradient(90deg, #4facfe, #00f2fe)"
+    }
+  };
+
+  let currentQ = 0;
+  let answers = new Array(questions.length).fill(null);
+  let scores = { A: 0, B: 0, C: 0, D: 0 };
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function startQuiz() {
+    currentQ = 0;
+    answers = new Array(questions.length).fill(null);
+    scores = { A: 0, B: 0, C: 0, D: 0 };
+    renderQuestion();
+    showScreen('quiz');
+  }
+
+  function renderQuestion() {
+    const q = questions[currentQ];
+    const total = questions.length;
+
+    document.getElementById('q-number').textContent = q.emoji + ' Question ' + (currentQ + 1);
+    document.getElementById('q-text').textContent = q.text;
+    document.getElementById('progress-count').textContent = (currentQ + 1) + ' / ' + total;
+    document.getElementById('progress-bar').style.width = ((currentQ / total) * 100) + '%';
+
+    const choicesEl = document.getElementById('q-choices');
+    const icons = ['🅰️', '🅱️', '🅲️', '🅳️'];
+    const emojiIcons = ['💡', '🌟', '✨', '🔮'];
+    choicesEl.innerHTML = '';
+
+    q.choices.forEach((choice, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn' + (answers[currentQ] === i ? ' selected' : '');
+      btn.innerHTML = `
+        <div class="choice-icon">${emojiIcons[i]}</div>
+        <div class="choice-content">
+          <div class="choice-label">${choice.label}</div>
+        </div>
+      `;
+      btn.addEventListener('click', () => selectAnswer(i));
+      choicesEl.appendChild(btn);
+    });
+
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.textContent = currentQ === questions.length - 1 ? '診断する ✨' : '次へ →';
+    nextBtn.className = 'btn-next' + (answers[currentQ] !== null ? ' enabled' : '');
+    document.getElementById('btn-back').style.display = currentQ === 0 ? 'none' : '';
+  }
+
+  function selectAnswer(index) {
+    answers[currentQ] = index;
+    document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+      btn.className = 'choice-btn' + (i === index ? ' selected' : '');
+    });
+    document.getElementById('btn-next').className = 'btn-next enabled';
+  }
+
+  function nextQuestion() {
+    if (answers[currentQ] === null) return;
+    if (currentQ < questions.length - 1) {
+      currentQ++;
+      renderQuestion();
+    } else {
+      computeResult();
+    }
+  }
+
+  function prevQuestion() {
+    if (currentQ > 0) {
+      currentQ--;
+      renderQuestion();
+    } else {
+      showScreen('start');
+    }
+  }
+
+  function computeResult() {
+    scores = { A: 0, B: 0, C: 0, D: 0 };
+    answers.forEach((ans, qi) => {
+      if (ans !== null) {
+        const chosen = questions[qi].choices[ans].scores;
+        Object.keys(chosen).forEach(k => { scores[k] += chosen[k]; });
+      }
+    });
+
+    showScreen('loading');
+    setTimeout(() => {
+      showResult();
+    }, 2000);
+  }
+
+  function showResult() {
+    const winner = Object.keys(scores).reduce((a, b) => scores[a] >= scores[b] ? a : b);
+    const t = types[winner];
+
+    document.getElementById('result-crown').textContent = t.crown;
+    document.getElementById('result-type-letter').textContent = winner;
+    document.getElementById('result-type-name').textContent = t.name;
+    document.getElementById('result-desc').textContent = t.desc;
+    document.getElementById('result-step').textContent = t.step;
+
+    const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
+    const barsEl = document.getElementById('score-bars');
+    barsEl.innerHTML = '';
+
+    const typeOrder = ['A', 'B', 'C', 'D'];
+    typeOrder.forEach(key => {
+      const pct = Math.round((scores[key] / total) * 100);
+      const item = document.createElement('div');
+      item.className = 'score-bar-item';
+      item.innerHTML = `
+        <div class="score-bar-header">
+          <span class="score-bar-label">TYPE ${key}：${types[key].name}</span>
+          <span class="score-bar-pct">${pct}%</span>
+        </div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="background: ${types[key].barColor}; width: 0%" data-pct="${pct}"></div>
+        </div>
+      `;
+      barsEl.appendChild(item);
+    });
+
+    showScreen('result');
+    launchConfetti();
+
+    setTimeout(() => {
+      document.querySelectorAll('.score-bar-fill').forEach(el => {
+        el.style.width = el.dataset.pct + '%';
+      });
+    }, 300);
+  }
+
+  function retryQuiz() {
+    startQuiz();
+  }
+
+  function shareResult() {
+    const winner = Object.keys(scores).reduce((a, b) => scores[a] >= scores[b] ? a : b);
+    const t = types[winner];
+    const text = `事業家タイプ診断の結果は...\n\nTYPE ${winner}：${t.name} ${t.crown}\n\nあなたも診断してみよう！ #事業家タイプ診断`;
+    if (navigator.share) {
+      navigator.share({ title: '事業家タイプ診断', text: text });
+    } else {
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.btn-share');
+        const orig = btn.textContent;
+        btn.textContent = '✅ コピーしました！';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      });
+    }
+  }
+
+  function launchConfetti() {
+    const container = document.getElementById('confetti-container');
+    container.innerHTML = '';
+    const colors = ['#FF6B9D', '#C471ED', '#FF8C69', '#B8A9FF', '#FFD6E0', '#FFC837', '#4facfe'];
+    const shapes = ['●', '★', '♦', '■', '▲'];
+
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
+      const size = Math.random() * 12 + 6;
+      const left = Math.random() * 100;
+      const delay = Math.random() * 1.5;
+      const duration = Math.random() * 2 + 2.5;
+
+      piece.style.cssText = `
+        left: ${left}%;
+        color: ${color};
+        font-size: ${size}px;
+        animation-delay: ${delay}s;
+        animation-duration: ${duration}s;
+      `;
+      piece.textContent = shape;
+      container.appendChild(piece);
+    }
+
+    setTimeout(() => { container.innerHTML = ''; }, 5000);
+  }
+
+  // keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('screen-quiz').classList.contains('active')) {
+      if (e.key >= '1' && e.key <= '4') {
+        const idx = parseInt(e.key) - 1;
+        if (idx < questions[currentQ].choices.length) selectAnswer(idx);
+      }
+      if (e.key === 'Enter' && answers[currentQ] !== null) nextQuestion();
+      if (e.key === 'ArrowLeft') prevQuestion();
+    }
+  });
+</script>
+</body>
+</html>
